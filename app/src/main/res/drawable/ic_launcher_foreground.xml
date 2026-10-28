@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Shield Glow -->
+    <path
+        android:fillColor="#1538BDF8"
+        android:pathData="M 54,23 L 82,34 C 82,60 69,76 54,85 C 39,76 26,60 26,34 Z" />
+    <!-- Outer Shield Border -->
+    <path
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="3.5"
+        android:fillColor="#0A2540"
+        android:pathData="M 54,26 L 79,36 C 79,58 67,73 54,81 C 41,73 29,58 29,36 Z" />
+    <!-- Inner Accent Shield -->
+    <path
+        android:strokeColor="#0284C7"
+        android:strokeWidth="1.5"
+        android:fillColor="#075985"
+        android:pathData="M 54,34 L 72,42 C 72,58 63,68 54,74 C 45,68 36,58 36,42 Z" />
+    <!-- Forensic Magnifier / Scan Reticle -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M 44,53 L 51,60 L 65,46" />
+</vector>

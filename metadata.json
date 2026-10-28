@@ -1,0 +1,6 @@
+{
+  "name": "PS-02 Android Security",
+  "description": "Android APK security and forensic analysis platform. Static vulnerability analysis, permission auditing, risk scoring, and evidence report generator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
