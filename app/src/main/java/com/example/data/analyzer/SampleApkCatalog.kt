@@ -3,6 +3,8 @@ package com.example.data.analyzer
 import com.example.data.model.DetectedSecretItem
 import com.example.data.model.ExportedComponentItem
 import com.example.data.model.ForensicReport
+import com.example.data.model.HeuristicAnalysisSummary
+import com.example.data.model.HeuristicFinding
 import com.example.data.model.PermissionThreatItem
 import com.example.data.model.RiskLabel
 import com.example.data.model.ScanFinding
@@ -297,6 +299,40 @@ object SampleApkCatalog {
       }
     }
 
+    // Heuristic Engine scanning logic for benchmarks
+    val heuristicEngine = ApkHeuristicEngine()
+    val heuristicResult = when (benchmark.id) {
+      "bench-insecure-bank" -> heuristicEngine.evaluateHeuristics(
+        scanId = scanId,
+        dclPatterns = emptyList(),
+        obfuscationPatterns = listOf("ShortIdentifiers"),
+        reflectionPatterns = listOf("Exec", "Root")
+      )
+      "bench-spyware-tracker" -> heuristicEngine.evaluateHeuristics(
+        scanId = scanId,
+        dclPatterns = listOf("DexClassLoader", "PayloadDrop"),
+        obfuscationPatterns = listOf("StrippedDebug"),
+        reflectionPatterns = listOf("SystemProperties", "Telephony")
+      )
+      "bench-adware-utility" -> heuristicEngine.evaluateHeuristics(
+        scanId = scanId,
+        dclPatterns = listOf("InMemoryDex"),
+        obfuscationPatterns = listOf("Jiagu"),
+        reflectionPatterns = listOf("Telephony")
+      )
+      else -> heuristicEngine.evaluateHeuristics(
+        scanId = scanId,
+        dclPatterns = emptyList(),
+        obfuscationPatterns = emptyList(),
+        reflectionPatterns = emptyList()
+      )
+    }
+
+    // Add heuristic findings to main findings list
+    heuristicResult.findings.forEach { hFinding ->
+      findings.add(hFinding.toScanFinding(scanId))
+    }
+
     val criticalCount = findings.count { it.severity == Severity.CRITICAL }
     val highCount = findings.count { it.severity == Severity.HIGH }
     val mediumCount = findings.count { it.severity == Severity.MEDIUM }
@@ -363,8 +399,8 @@ object SampleApkCatalog {
       toolVersion = "PS-02 Static Forensic Analyzer v2.4.0",
       riskScore = finalScore,
       riskLabel = riskLabel,
-      executiveSummary = "Benchmark forensic security evaluation of '${benchmark.name}' scored $finalScore/100 ($riskLabel). Evaluated static manifest declarations, component exposure, cryptographic signatures, and string pattern matches.",
-      methodology = "Automated static forensic evaluation using PS-02 Forensic Engine. Examined byte streams, hashes, dangerous permissions, exported components, and pattern entropy without live execution."
+      executiveSummary = "Benchmark forensic security evaluation of '${benchmark.name}' scored $finalScore/100 ($riskLabel). Evaluated static manifest declarations, component exposure, cryptographic signatures, string pattern matches, and heuristic patterns (${heuristicResult.findings.size} heuristic threat detections).",
+      methodology = "Automated static forensic evaluation using PS-02 Forensic Engine with Heuristic Analyzer. Examined byte streams, hashes, dangerous permissions, exported components, DCL/Obfuscation/Reflection signatures, and pattern entropy without live execution."
     )
 
     return FullScanResult(
@@ -374,7 +410,9 @@ object SampleApkCatalog {
       exportedComponents = exportedComponents,
       detectedSecrets = detectedSecrets,
       extractedUrls = urls,
-      report = report
+      report = report,
+      heuristicFindings = heuristicResult.findings,
+      heuristicSummary = heuristicResult.summary
     )
   }
 }

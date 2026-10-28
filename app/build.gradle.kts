@@ -123,6 +123,8 @@ dependencies {
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.logging.interceptor)
   implementation(libs.moshi.kotlin)
+  // Supabase Cloud Storage & Database client (uncommented for forensic cloud storage sync)
+  implementation(libs.supabase.storage)
   implementation(libs.okhttp)
   // implementation(libs.play.services.location)
   implementation(libs.retrofit)

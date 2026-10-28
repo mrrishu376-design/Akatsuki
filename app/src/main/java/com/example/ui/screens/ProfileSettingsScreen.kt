@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,9 +22,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -34,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -58,14 +58,18 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.MainViewModel
 import com.example.ui.components.CyberTopAppBar
 import com.example.ui.navigation.Screen
-import com.example.ui.theme.CyberAccentCyan
-import com.example.ui.theme.CyberBlueDark
-import com.example.ui.theme.CyberBluePrimary
+import com.example.ui.theme.ConsoleBlueBg
+import com.example.ui.theme.ConsoleBluePrimary
+import com.example.ui.theme.ConsoleBorder
+import com.example.ui.theme.ConsoleNavy
+import com.example.ui.theme.ConsoleWhite
 import com.example.ui.theme.RiskSafeGreen
 import com.example.ui.theme.SeverityCritical
 import com.example.ui.theme.Slate200
 import com.example.ui.theme.Slate600
+import com.example.ui.theme.Slate700
 import com.example.ui.theme.Slate800
+import com.example.ui.theme.Slate900
 
 @Composable
 fun ProfileSettingsScreen(viewModel: MainViewModel) {
@@ -165,7 +169,8 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
         showBack = true,
         onBackClick = { viewModel.navigateTo(Screen.DASHBOARD) }
       )
-    }
+    },
+    containerColor = ConsoleWhite
   ) { innerPadding ->
     Column(
       modifier = Modifier
@@ -173,32 +178,34 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
         .padding(innerPadding)
         .padding(16.dp)
         .verticalScroll(rememberScrollState()),
-      verticalArrangement = Arrangement.spacedBy(16.dp)
+      verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
       // AUDITOR PROFILE CARD
       Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(14.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+          .fillMaxWidth()
+          .border(1.dp, ConsoleBorder, RoundedCornerShape(8.dp)),
+        colors = CardDefaults.cardColors(containerColor = ConsoleWhite),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
       ) {
         Column(modifier = Modifier.padding(18.dp)) {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
               modifier = Modifier
-                .size(52.dp)
+                .size(48.dp)
                 .clip(CircleShape)
-                .background(CyberBluePrimary.copy(alpha = 0.12f)),
+                .background(ConsoleBlueBg),
               contentAlignment = Alignment.Center
             ) {
-              Icon(Icons.Default.AccountCircle, contentDescription = null, tint = CyberBluePrimary, modifier = Modifier.size(36.dp))
+              Icon(Icons.Default.AccountCircle, contentDescription = null, tint = ConsoleBluePrimary, modifier = Modifier.size(32.dp))
             }
             Spacer(modifier = Modifier.width(14.dp))
             Column {
               Text(
                 text = user?.fullName ?: "SecOps Auditor",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
+                color = Slate900
               )
               Text(
                 text = "${user?.role ?: "Forensic Analyst"} • ${user?.organization ?: "Cyber Defense Lab"}",
@@ -206,15 +213,15 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
                 color = Slate600
               )
               Text(
-                text = user?.email ?: "analyst@cyberdefense.org",
+                text = user?.email ?: "mrrishu376@gmail.com",
                 style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-                color = CyberBlueDark
+                color = ConsoleBluePrimary
               )
             }
           }
 
           Spacer(modifier = Modifier.height(14.dp))
-          HorizontalDivider(color = Color(0xFFE2E8F0))
+          HorizontalDivider(color = ConsoleBorder)
           Spacer(modifier = Modifier.height(10.dp))
 
           OutlinedButton(
@@ -222,9 +229,10 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
             modifier = Modifier
               .fillMaxWidth()
               .testTag("btn_logout_auditor"),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(6.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, SeverityCritical.copy(alpha = 0.5f))
           ) {
-            Icon(Icons.Default.ExitToApp, contentDescription = null, tint = SeverityCritical)
+            Icon(Icons.Default.ExitToApp, contentDescription = null, tint = SeverityCritical, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text("Switch Auditor Account / Sign Out", color = SeverityCritical, fontWeight = FontWeight.Bold)
           }
@@ -233,25 +241,27 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
 
       // CLOUD BACKEND INTEGRATION SETTINGS (SUPABASE & FASTAPI)
       Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(14.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+          .fillMaxWidth()
+          .border(1.dp, ConsoleBorder, RoundedCornerShape(8.dp)),
+        colors = CardDefaults.cardColors(containerColor = ConsoleWhite),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
       ) {
         Column(modifier = Modifier.padding(18.dp)) {
           Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Cloud, contentDescription = null, tint = CyberBluePrimary)
+            Icon(Icons.Default.Cloud, contentDescription = null, tint = ConsoleBluePrimary)
             Spacer(modifier = Modifier.width(10.dp))
             Text(
               text = "Cloud Backend & API Configuration",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-              color = MaterialTheme.colorScheme.onSurface
+              color = Slate900
             )
           }
 
           Spacer(modifier = Modifier.height(6.dp))
           Text(
-            text = "Configure your Supabase PostgreSQL and FastAPI service endpoints for remote synchronization:",
+            text = "Configure Supabase PostgreSQL and FastAPI endpoints for real-time synchronization:",
             style = MaterialTheme.typography.bodySmall,
             color = Slate600
           )
@@ -265,7 +275,14 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
             modifier = Modifier
               .fillMaxWidth()
               .testTag("input_supabase_url"),
-            singleLine = true
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+              focusedBorderColor = ConsoleBluePrimary,
+              unfocusedBorderColor = ConsoleBorder,
+              focusedContainerColor = ConsoleWhite,
+              unfocusedContainerColor = ConsoleWhite
+            ),
+            shape = RoundedCornerShape(6.dp)
           )
 
           Spacer(modifier = Modifier.height(10.dp))
@@ -277,7 +294,14 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
             modifier = Modifier
               .fillMaxWidth()
               .testTag("input_supabase_anon_key"),
-            singleLine = true
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+              focusedBorderColor = ConsoleBluePrimary,
+              unfocusedBorderColor = ConsoleBorder,
+              focusedContainerColor = ConsoleWhite,
+              unfocusedContainerColor = ConsoleWhite
+            ),
+            shape = RoundedCornerShape(6.dp)
           )
 
           Spacer(modifier = Modifier.height(10.dp))
@@ -289,10 +313,39 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
             modifier = Modifier
               .fillMaxWidth()
               .testTag("input_api_base_url"),
-            singleLine = true
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+              focusedBorderColor = ConsoleBluePrimary,
+              unfocusedBorderColor = ConsoleBorder,
+              focusedContainerColor = ConsoleWhite,
+              unfocusedContainerColor = ConsoleWhite
+            ),
+            shape = RoundedCornerShape(6.dp)
           )
 
-          Spacer(modifier = Modifier.height(16.dp))
+          Spacer(modifier = Modifier.height(10.dp))
+
+          Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = ConsoleBlueBg,
+            shape = RoundedCornerShape(6.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, ConsoleBorder)
+          ) {
+            Row(
+              modifier = Modifier.padding(10.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Icon(Icons.Default.Cloud, contentDescription = null, tint = ConsoleBluePrimary, modifier = Modifier.size(16.dp))
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = "Supabase Storage Bucket: ${viewModel.supabaseRepo.defaultBucket} (Forensic Artifacts Ingest)",
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                color = ConsoleNavy
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(14.dp))
 
           Button(
             onClick = {
@@ -301,9 +354,10 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
             },
             modifier = Modifier
               .fillMaxWidth()
+              .height(46.dp)
               .testTag("btn_save_cloud_settings"),
-            colors = ButtonDefaults.buttonColors(containerColor = CyberBluePrimary),
-            shape = RoundedCornerShape(8.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = ConsoleBluePrimary),
+            shape = RoundedCornerShape(6.dp)
           ) {
             Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(6.dp))
@@ -323,9 +377,12 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
 
       // POSTGRESQL & ROW LEVEL SECURITY SCHEMA VIEWER
       Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(14.dp)
+        modifier = Modifier
+          .fillMaxWidth()
+          .border(1.dp, ConsoleBorder, RoundedCornerShape(8.dp)),
+        colors = CardDefaults.cardColors(containerColor = ConsoleWhite),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
       ) {
         Column(modifier = Modifier.padding(18.dp)) {
           Row(
@@ -334,17 +391,17 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
             verticalAlignment = Alignment.CenterVertically
           ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-              Icon(Icons.Default.Storage, contentDescription = null, tint = CyberBluePrimary)
+              Icon(Icons.Default.Storage, contentDescription = null, tint = ConsoleBluePrimary)
               Spacer(modifier = Modifier.width(10.dp))
               Text(
                 text = "PostgreSQL & RLS Blueprint",
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
+                color = Slate900
               )
             }
 
             TextButton(onClick = { showSqlSchema = !showSqlSchema }) {
-              Text(if (showSqlSchema) "Hide SQL" else "View SQL", fontWeight = FontWeight.Bold)
+              Text(if (showSqlSchema) "Hide SQL" else "View SQL", fontWeight = FontWeight.Bold, color = ConsoleBluePrimary)
             }
           }
 
@@ -358,8 +415,8 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
             Spacer(modifier = Modifier.height(10.dp))
             Surface(
               modifier = Modifier.fillMaxWidth(),
-              color = Color(0xFF0F172A),
-              shape = RoundedCornerShape(8.dp)
+              color = ConsoleNavy,
+              shape = RoundedCornerShape(6.dp)
             ) {
               Column(modifier = Modifier.padding(12.dp)) {
                 Row(
@@ -368,12 +425,12 @@ CREATE POLICY "Users read own forensic reports" ON public.forensic_reports FOR S
                 ) {
                   Button(
                     onClick = { clipboardManager.setText(AnnotatedString(sqlSchemaDefinition)) },
-                    colors = ButtonDefaults.buttonColors(containerColor = CyberBluePrimary),
-                    shape = RoundedCornerShape(6.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = ConsoleBluePrimary),
+                    shape = RoundedCornerShape(4.dp)
                   ) {
                     Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Copy SQL", fontSize = 11.sp)
+                    Text("Copy SQL", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                   }
                 }
                 Spacer(modifier = Modifier.height(6.dp))

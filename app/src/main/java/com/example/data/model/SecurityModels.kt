@@ -127,3 +127,66 @@ data class DetectedSecretItem(
   val location: String,
   val severity: Severity
 )
+
+enum class HeuristicCategory(val displayName: String) {
+  DYNAMIC_CODE_LOADING("Dynamic Code Loading (DCL)"),
+  OBFUSCATION_PACKERS("Obfuscation & Packers"),
+  SUSPICIOUS_REFLECTION("Suspicious Reflection")
+}
+
+enum class Confidence(val label: String) {
+  HIGH("HIGH"),
+  MEDIUM("MEDIUM"),
+  LOW("LOW")
+}
+
+data class HeuristicFinding(
+  val id: String = UUID.randomUUID().toString(),
+  val ruleId: String,
+  val category: HeuristicCategory,
+  val title: String,
+  val severity: Severity,
+  val confidence: Confidence,
+  val description: String,
+  val matchedPattern: String,
+  val evidenceSnippet: String,
+  val location: String,
+  val mitreAttackId: String,
+  val cweId: String = "CWE-912",
+  val remediation: String
+) {
+  fun toScanFinding(scanId: String): ScanFinding = ScanFinding(
+    id = id,
+    scanId = scanId,
+    ruleId = ruleId,
+    category = when (category) {
+      HeuristicCategory.DYNAMIC_CODE_LOADING -> "HEURISTIC_DCL"
+      HeuristicCategory.OBFUSCATION_PACKERS -> "HEURISTIC_OBFUSCATION"
+      HeuristicCategory.SUSPICIOUS_REFLECTION -> "HEURISTIC_REFLECTION"
+    },
+    title = title,
+    severity = severity,
+    description = "$description [Confidence: ${confidence.label}] [MITRE ATT&CK: $mitreAttackId]",
+    evidence = evidenceSnippet,
+    recommendation = remediation,
+    cweId = cweId
+  )
+}
+
+data class HeuristicAnalysisSummary(
+  val totalHeuristicFindings: Int,
+  val dclCount: Int,
+  val obfuscationCount: Int,
+  val reflectionCount: Int,
+  val highestSeverity: Severity,
+  val packerIdentified: String? = null,
+  val hasDynamicLoading: Boolean = false,
+  val hasSuspiciousReflection: Boolean = false,
+  val riskContributionScore: Int = 0
+)
+
+data class HeuristicScanResult(
+  val findings: List<HeuristicFinding>,
+  val summary: HeuristicAnalysisSummary
+)
+

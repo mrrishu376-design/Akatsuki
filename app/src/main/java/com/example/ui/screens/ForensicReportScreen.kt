@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,17 +19,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Warning
+import com.example.data.repository.CloudSyncState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +47,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,21 +63,29 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.analyzer.EvidenceReportGenerator
 import com.example.data.model.ScanFinding
+import kotlinx.coroutines.launch
 import com.example.ui.MainViewModel
 import com.example.ui.components.CyberTopAppBar
 import com.example.ui.components.SeverityBadge
 import com.example.ui.navigation.Screen
-import com.example.ui.theme.CyberAccentCyan
-import com.example.ui.theme.CyberBlueDark
-import com.example.ui.theme.CyberBluePrimary
+import com.example.ui.theme.ConsoleBlueBg
+import com.example.ui.theme.ConsoleBluePrimary
+import com.example.ui.theme.ConsoleBorder
+import com.example.ui.theme.ConsoleNavy
+import com.example.ui.theme.ConsoleWhite
 import com.example.ui.theme.RiskSafeGreen
 import com.example.ui.theme.SeverityCritical
+import com.example.ui.theme.SeverityCriticalBg
 import com.example.ui.theme.SeverityHigh
+import com.example.ui.theme.SeverityHighBg
 import com.example.ui.theme.SeverityMedium
+import com.example.ui.theme.SeverityMediumBg
 import com.example.ui.theme.Slate200
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate800
+import com.example.ui.theme.Slate900
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -79,6 +99,11 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
   val scan = activeResult?.scan
   val report = activeResult?.report
   val findings = activeResult?.findings ?: emptyList()
+
+  var isExportingPdf by remember { mutableStateOf(false) }
+  var pdfMessage by remember { mutableStateOf<String?>(null) }
+  val cloudSyncState by viewModel.cloudSyncState.collectAsState()
+  val coroutineScope = rememberCoroutineScope()
 
   val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
   val formattedDate = if (report != null) dateFormat.format(Date(report.generatedAt)) else ""
@@ -136,11 +161,12 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
         onBackClick = { viewModel.navigateTo(Screen.RESULTS) },
         onProfileClick = { viewModel.navigateTo(Screen.PROFILE) }
       )
-    }
+    },
+    containerColor = ConsoleWhite
   ) { innerPadding ->
     if (scan == null || report == null) {
       Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
-        Text("No report data available.")
+        Text("No report data available.", color = Slate600)
       }
       return@Scaffold
     }
@@ -149,17 +175,18 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
       modifier = Modifier
         .fillMaxSize()
         .padding(innerPadding)
-        .padding(horizontal = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(14.dp)
+        .padding(horizontal = 16.dp, vertical = 12.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
       item {
-        Spacer(modifier = Modifier.height(4.dp))
         // REPORT HEADER CARD
         Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-          shape = RoundedCornerShape(14.dp),
-          elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+          modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, ConsoleBorder, RoundedCornerShape(8.dp)),
+          colors = CardDefaults.cardColors(containerColor = ConsoleWhite),
+          shape = RoundedCornerShape(8.dp),
+          elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
           Column(modifier = Modifier.padding(18.dp)) {
             Row(
@@ -171,23 +198,26 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
                 Text(
                   text = "OFFICIAL FORENSIC DOSSIER",
                   style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-                  color = CyberBluePrimary
+                  color = ConsoleBluePrimary
                 )
                 Text(
                   text = report.reportTitle,
                   style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                  color = MaterialTheme.colorScheme.onSurface
+                  color = Slate900
                 )
               }
 
+              val (scoreColor, scoreBg) = when (scan.riskLabel) {
+                com.example.data.model.RiskLabel.CRITICAL -> SeverityCritical to SeverityCriticalBg
+                com.example.data.model.RiskLabel.HIGH -> SeverityHigh to SeverityHighBg
+                com.example.data.model.RiskLabel.MEDIUM -> SeverityMedium to SeverityMediumBg
+                else -> RiskSafeGreen to Color(0xFFDCFCE7)
+              }
+
               Surface(
-                color = when (scan.riskLabel) {
-                  com.example.data.model.RiskLabel.CRITICAL -> SeverityCritical
-                  com.example.data.model.RiskLabel.HIGH -> SeverityHigh
-                  com.example.data.model.RiskLabel.MEDIUM -> SeverityMedium
-                  else -> RiskSafeGreen
-                }.copy(alpha = 0.15f),
-                shape = RoundedCornerShape(6.dp)
+                color = scoreBg,
+                shape = RoundedCornerShape(6.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, scoreColor.copy(alpha = 0.4f))
               ) {
                 Text(
                   text = "${scan.riskScore}/100",
@@ -195,27 +225,22 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
                     fontWeight = FontWeight.Black,
                     fontFamily = FontFamily.Monospace
                   ),
-                  color = when (scan.riskLabel) {
-                    com.example.data.model.RiskLabel.CRITICAL -> SeverityCritical
-                    com.example.data.model.RiskLabel.HIGH -> SeverityHigh
-                    com.example.data.model.RiskLabel.MEDIUM -> SeverityMedium
-                    else -> RiskSafeGreen
-                  },
+                  color = scoreColor,
                   modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
               }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
-            HorizontalDivider(color = Color(0xFFE2E8F0))
+            HorizontalDivider(color = ConsoleBorder)
             Spacer(modifier = Modifier.height(14.dp))
 
             // Metadata Grid
             DossierField(label = "REPORT ID", value = report.id)
             DossierField(label = "SCAN ID", value = scan.id)
-            DossierField(label = "ANALYSIS TIMESTAMP", value = formattedDate)
+            DossierField(label = "TIMESTAMP", value = formattedDate)
             DossierField(label = "TOOL VERSION", value = report.toolVersion)
-            DossierField(label = "TARGET FILENAME", value = scan.originalFilename)
+            DossierField(label = "TARGET FILE", value = scan.originalFilename)
             DossierField(label = "SHA-256 HASH", value = scan.sha256Hash)
             DossierField(label = "MD5 HASH", value = scan.md5Hash.ifEmpty { "N/A" })
 
@@ -234,8 +259,8 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
                 modifier = Modifier
                   .weight(1f)
                   .testTag("btn_copy_report"),
-                colors = ButtonDefaults.buttonColors(containerColor = CyberBluePrimary),
-                shape = RoundedCornerShape(8.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = ConsoleNavy),
+                shape = RoundedCornerShape(6.dp)
               ) {
                 Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
@@ -255,12 +280,219 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
                 modifier = Modifier
                   .weight(1f)
                   .testTag("btn_share_report"),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(6.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, ConsoleBorder)
               ) {
-                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Share, contentDescription = null, tint = ConsoleNavy, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Share Dossier", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("Share Dossier", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = ConsoleNavy)
               }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Compile & Export Structured PDF CTA
+            Button(
+              onClick = {
+                isExportingPdf = true
+                pdfMessage = null
+                coroutineScope.launch {
+                  try {
+                    val generator = EvidenceReportGenerator(context)
+                    val pdfFile = generator.compilePdf(scan, findings, report)
+                    isExportingPdf = false
+                    pdfMessage = "Generated: ${pdfFile.name}"
+                    val uri = generator.getShareableUri(pdfFile)
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                      type = "application/pdf"
+                      putExtra(Intent.EXTRA_STREAM, uri)
+                      putExtra(Intent.EXTRA_SUBJECT, "PS-02 Forensic Audit: ${scan.appName}")
+                      addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, "Export Forensic PDF"))
+                  } catch (e: Exception) {
+                    isExportingPdf = false
+                    pdfMessage = "Export failed: ${e.message}"
+                  }
+                }
+              },
+              modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .testTag("btn_export_pdf_dossier"),
+              colors = ButtonDefaults.buttonColors(containerColor = ConsoleBluePrimary),
+              shape = RoundedCornerShape(6.dp)
+            ) {
+              if (isExportingPdf) {
+                CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Compiling Forensic PDF...", fontWeight = FontWeight.Bold)
+              } else {
+                Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Compile & Export PDF Document", fontWeight = FontWeight.Bold)
+              }
+            }
+
+            if (pdfMessage != null) {
+              Spacer(modifier = Modifier.height(8.dp))
+              Text(
+                text = pdfMessage ?: "",
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = if (pdfMessage?.startsWith("Generated") == true) RiskSafeGreen else SeverityCritical
+              )
+            }
+          }
+        }
+      }
+
+      // SUPABASE CLOUD STORAGE DOSSIER INGEST
+      item {
+        Card(
+          modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, ConsoleBorder, RoundedCornerShape(8.dp)),
+          colors = CardDefaults.cardColors(containerColor = ConsoleWhite),
+          shape = RoundedCornerShape(8.dp),
+          elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+          Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.CloudUpload, contentDescription = null, tint = ConsoleBluePrimary, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                  text = "SUPABASE CLOUD STORAGE SYNC",
+                  style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                  color = ConsoleBluePrimary
+                )
+              }
+
+              Surface(
+                color = ConsoleBlueBg,
+                shape = RoundedCornerShape(4.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, ConsoleBorder)
+              ) {
+                Text(
+                  text = "Bucket: ${viewModel.supabaseRepo.defaultBucket}",
+                  style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                  color = ConsoleNavy,
+                  modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+              }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+              text = "Persist complete cryptographic evidence dossier (JSON artifact and findings metadata) to Supabase Storage for multi-analyst forensics.",
+              style = MaterialTheme.typography.bodySmall,
+              color = Slate600
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            when (val state = cloudSyncState) {
+              is CloudSyncState.Syncing -> {
+                Surface(
+                  modifier = Modifier.fillMaxWidth(),
+                  color = ConsoleBlueBg,
+                  shape = RoundedCornerShape(6.dp),
+                  border = androidx.compose.foundation.BorderStroke(1.dp, ConsoleBluePrimary.copy(alpha = 0.4f))
+                ) {
+                  Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    CircularProgressIndicator(
+                      progress = { state.progress },
+                      modifier = Modifier.size(20.dp),
+                      color = ConsoleBluePrimary,
+                      strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                      text = state.stage,
+                      style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                      color = ConsoleNavy
+                    )
+                  }
+                }
+              }
+              is CloudSyncState.Success -> {
+                Surface(
+                  modifier = Modifier.fillMaxWidth(),
+                  color = Color(0xFFF0FDF4),
+                  shape = RoundedCornerShape(6.dp),
+                  border = androidx.compose.foundation.BorderStroke(1.dp, RiskSafeGreen.copy(alpha = 0.4f))
+                ) {
+                  Column(modifier = Modifier.padding(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                      Icon(Icons.Default.CloudDone, contentDescription = null, tint = RiskSafeGreen, modifier = Modifier.size(18.dp))
+                      Spacer(modifier = Modifier.width(6.dp))
+                      Text(
+                        text = if (state.uploadResult.isSimulated) "Ingested into Cloud Storage (Sandbox)" else "Cloud Dossier Live on Supabase",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = RiskSafeGreen
+                      )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                      text = "Remote Path: ${state.uploadResult.storagePath}",
+                      style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                      color = Slate800
+                    )
+                    Text(
+                      text = "Payload Size: ${state.uploadResult.fileSizeBytes} B • SHA-256: ${state.uploadResult.sha256Checksum.take(16)}...",
+                      style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                      color = Slate600
+                    )
+                  }
+                }
+              }
+              is CloudSyncState.Error -> {
+                Surface(
+                  modifier = Modifier.fillMaxWidth(),
+                  color = SeverityCriticalBg,
+                  shape = RoundedCornerShape(6.dp),
+                  border = androidx.compose.foundation.BorderStroke(1.dp, SeverityCritical.copy(alpha = 0.4f))
+                ) {
+                  Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    Icon(Icons.Default.Warning, contentDescription = null, tint = SeverityCritical, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                      text = "Cloud Sync Error: ${state.message}",
+                      style = MaterialTheme.typography.bodySmall,
+                      color = SeverityCritical
+                    )
+                  }
+                }
+              }
+              CloudSyncState.Idle -> { /* Idle */ }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Button(
+              onClick = {
+                viewModel.uploadActiveScanToCloud()
+              },
+              modifier = Modifier
+                .fillMaxWidth()
+                .height(46.dp)
+                .testTag("btn_sync_supabase_storage"),
+              colors = ButtonDefaults.buttonColors(containerColor = ConsoleNavy),
+              shape = RoundedCornerShape(6.dp)
+            ) {
+              Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(18.dp))
+              Spacer(modifier = Modifier.width(8.dp))
+              Text("Upload Forensic Dossier to Supabase", fontWeight = FontWeight.Bold)
             }
           }
         }
@@ -269,15 +501,18 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
       // EXECUTIVE SUMMARY
       item {
         Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-          shape = RoundedCornerShape(12.dp)
+          modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, ConsoleBorder, RoundedCornerShape(8.dp)),
+          colors = CardDefaults.cardColors(containerColor = ConsoleWhite),
+          shape = RoundedCornerShape(8.dp),
+          elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
           Column(modifier = Modifier.padding(16.dp)) {
             Text(
               text = "Executive Summary",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-              color = CyberBlueDark
+              color = ConsoleNavy
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -290,20 +525,23 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
         }
       }
 
-      // FINDINGS TABLE
+      // FINDINGS HEADER
       item {
         Text(
           text = "Detailed Forensic Evidence Findings",
           style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-          color = MaterialTheme.colorScheme.onBackground
+          color = Slate900
         )
       }
 
       items(findings) { finding ->
         Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-          shape = RoundedCornerShape(10.dp)
+          modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, ConsoleBorder, RoundedCornerShape(8.dp)),
+          colors = CardDefaults.cardColors(containerColor = ConsoleWhite),
+          shape = RoundedCornerShape(8.dp),
+          elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
           Column(modifier = Modifier.padding(14.dp)) {
             Row(
@@ -317,7 +555,7 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
                   fontWeight = FontWeight.Bold,
                   fontFamily = FontFamily.Monospace
                 ),
-                color = CyberBlueDark
+                color = ConsoleBluePrimary
               )
               SeverityBadge(severity = finding.severity)
             }
@@ -326,7 +564,7 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
             Text(
               text = finding.title,
               style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-              color = MaterialTheme.colorScheme.onSurface
+              color = Slate900
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -340,7 +578,7 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
               Spacer(modifier = Modifier.height(6.dp))
               Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFF0F172A),
+                color = ConsoleNavy,
                 shape = RoundedCornerShape(4.dp)
               ) {
                 Text(
@@ -365,9 +603,12 @@ fun ForensicReportScreen(viewModel: MainViewModel) {
       // ANALYSIS LIMITATIONS DISCLAIMER
       item {
         Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
-          shape = RoundedCornerShape(12.dp)
+          modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, SeverityCritical.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
+          colors = CardDefaults.cardColors(containerColor = SeverityCriticalBg),
+          shape = RoundedCornerShape(8.dp),
+          elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
           Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
             Icon(Icons.Default.Warning, contentDescription = null, tint = SeverityCritical, modifier = Modifier.size(20.dp))
@@ -410,7 +651,7 @@ fun DossierField(label: String, value: String) {
       text = label,
       style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
       color = Slate600,
-      modifier = Modifier.width(130.dp)
+      modifier = Modifier.width(120.dp)
     )
     Text(
       text = value,
@@ -418,7 +659,7 @@ fun DossierField(label: String, value: String) {
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Medium
       ),
-      color = MaterialTheme.colorScheme.onSurface,
+      color = Slate900,
       maxLines = 1,
       modifier = Modifier.weight(1f)
     )

@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,15 +27,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -51,21 +53,23 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.MainViewModel
-import com.example.ui.theme.CyberAccentCyan
-import com.example.ui.theme.CyberBlueDark
-import com.example.ui.theme.CyberBluePrimary
-import com.example.ui.theme.CyberNavy
+import com.example.ui.theme.ConsoleBlueBg
+import com.example.ui.theme.ConsoleBluePrimary
+import com.example.ui.theme.ConsoleBorder
+import com.example.ui.theme.ConsoleNavy
+import com.example.ui.theme.ConsoleWhite
+import com.example.ui.theme.SeverityCritical
+import com.example.ui.theme.SeverityCriticalBg
 import com.example.ui.theme.Slate200
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate800
-
-import androidx.compose.runtime.collectAsState
+import com.example.ui.theme.Slate900
 
 @Composable
 fun AuthScreen(viewModel: MainViewModel) {
   var selectedTab by remember { mutableIntStateOf(0) } // 0 = Login, 1 = Signup
 
-  var email by remember { mutableStateOf("analyst@cyberdefense.org") }
+  var email by remember { mutableStateOf("mrrishu376@gmail.com") }
   var password by remember { mutableStateOf("••••••••••••") }
   var fullName by remember { mutableStateOf("Alex Mercer") }
   var role by remember { mutableStateOf("Senior Forensic Auditor") }
@@ -76,7 +80,7 @@ fun AuthScreen(viewModel: MainViewModel) {
   Box(
     modifier = Modifier
       .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
+      .background(ConsoleWhite)
   ) {
     Column(
       modifier = Modifier
@@ -92,18 +96,14 @@ fun AuthScreen(viewModel: MainViewModel) {
       Box(
         modifier = Modifier
           .size(64.dp)
-          .clip(RoundedCornerShape(16.dp))
-          .background(
-            Brush.linearGradient(
-              colors = listOf(CyberBluePrimary, CyberBlueDark)
-            )
-          ),
+          .clip(RoundedCornerShape(12.dp))
+          .background(ConsoleNavy),
         contentAlignment = Alignment.Center
       ) {
         Icon(
           imageVector = Icons.Default.Shield,
           contentDescription = "PS-02 Security Platform",
-          tint = Color.White,
+          tint = ConsoleWhite,
           modifier = Modifier.size(36.dp)
         )
       }
@@ -116,43 +116,48 @@ fun AuthScreen(viewModel: MainViewModel) {
           fontWeight = FontWeight.Bold,
           letterSpacing = 0.5.sp
         ),
-        color = MaterialTheme.colorScheme.onBackground
+        color = Slate900
       )
 
       Text(
-        text = "Static Vulnerability & Evidence Analysis",
+        text = "Enterprise Static Vulnerability & Evidence Analysis",
         style = MaterialTheme.typography.bodyMedium,
         color = Slate600
       )
 
-      Spacer(modifier = Modifier.height(28.dp))
+      Spacer(modifier = Modifier.height(24.dp))
 
       Card(
         modifier = Modifier
           .fillMaxWidth()
-          .clip(RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(
-          containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+          .border(1.dp, ConsoleBorder, RoundedCornerShape(8.dp)),
+        colors = CardDefaults.cardColors(containerColor = ConsoleWhite),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
       ) {
         Column(modifier = Modifier.padding(20.dp)) {
           TabRow(
             selectedTabIndex = selectedTab,
-            containerColor = Color.Transparent,
-            contentColor = CyberBluePrimary
+            containerColor = ConsoleWhite,
+            contentColor = ConsoleBluePrimary,
+            indicator = { tabPositions ->
+              TabRowDefaults.SecondaryIndicator(
+                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                color = ConsoleBluePrimary
+              )
+            }
           ) {
             Tab(
               selected = selectedTab == 0,
               onClick = { selectedTab = 0 },
               modifier = Modifier.testTag("tab_login"),
-              text = { Text("Auditor Login", fontWeight = FontWeight.Bold) }
+              text = { Text("Auditor Login", fontWeight = FontWeight.Bold, color = if (selectedTab == 0) ConsoleNavy else Slate600) }
             )
             Tab(
               selected = selectedTab == 1,
               onClick = { selectedTab = 1 },
               modifier = Modifier.testTag("tab_signup"),
-              text = { Text("Register", fontWeight = FontWeight.Bold) }
+              text = { Text("Register", fontWeight = FontWeight.Bold, color = if (selectedTab == 1) ConsoleNavy else Slate600) }
             )
           }
 
@@ -163,12 +168,14 @@ fun AuthScreen(viewModel: MainViewModel) {
             Card(
               modifier = Modifier
                 .fillMaxWidth()
+                .border(1.dp, SeverityCritical.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
                 .padding(bottom = 16.dp),
-              colors = CardDefaults.cardColors(containerColor = Color(0xFFFEE2E2))
+              colors = CardDefaults.cardColors(containerColor = SeverityCriticalBg),
+              shape = RoundedCornerShape(6.dp)
             ) {
               Text(
                 text = currentError,
-                color = Color(0xFFDC2626),
+                color = SeverityCritical,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(12.dp)
               )
@@ -181,11 +188,18 @@ fun AuthScreen(viewModel: MainViewModel) {
               value = email,
               onValueChange = { email = it },
               label = { Text("SecOps Email") },
-              leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = CyberBluePrimary) },
+              leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = ConsoleBluePrimary) },
               modifier = Modifier
                 .fillMaxWidth()
                 .testTag("input_login_email"),
-              singleLine = true
+              singleLine = true,
+              colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = ConsoleBluePrimary,
+                unfocusedBorderColor = ConsoleBorder,
+                focusedContainerColor = ConsoleWhite,
+                unfocusedContainerColor = ConsoleWhite
+              ),
+              shape = RoundedCornerShape(6.dp)
             )
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -194,12 +208,19 @@ fun AuthScreen(viewModel: MainViewModel) {
               value = password,
               onValueChange = { password = it },
               label = { Text("Password") },
-              leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = CyberBluePrimary) },
+              leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = ConsoleBluePrimary) },
               visualTransformation = PasswordVisualTransformation(),
               modifier = Modifier
                 .fillMaxWidth()
                 .testTag("input_login_password"),
-              singleLine = true
+              singleLine = true,
+              colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = ConsoleBluePrimary,
+                unfocusedBorderColor = ConsoleBorder,
+                focusedContainerColor = ConsoleWhite,
+                unfocusedContainerColor = ConsoleWhite
+              ),
+              shape = RoundedCornerShape(6.dp)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -210,8 +231,8 @@ fun AuthScreen(viewModel: MainViewModel) {
                 .fillMaxWidth()
                 .height(48.dp)
                 .testTag("btn_submit_login"),
-              colors = ButtonDefaults.buttonColors(containerColor = CyberBluePrimary),
-              shape = RoundedCornerShape(10.dp)
+              colors = ButtonDefaults.buttonColors(containerColor = ConsoleBluePrimary),
+              shape = RoundedCornerShape(6.dp)
             ) {
               Icon(Icons.Default.Security, contentDescription = null, modifier = Modifier.size(18.dp))
               Spacer(modifier = Modifier.width(8.dp))
@@ -223,11 +244,18 @@ fun AuthScreen(viewModel: MainViewModel) {
               value = fullName,
               onValueChange = { fullName = it },
               label = { Text("Auditor Full Name") },
-              leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = CyberBluePrimary) },
+              leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = ConsoleBluePrimary) },
               modifier = Modifier
                 .fillMaxWidth()
                 .testTag("input_signup_name"),
-              singleLine = true
+              singleLine = true,
+              colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = ConsoleBluePrimary,
+                unfocusedBorderColor = ConsoleBorder,
+                focusedContainerColor = ConsoleWhite,
+                unfocusedContainerColor = ConsoleWhite
+              ),
+              shape = RoundedCornerShape(6.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -236,11 +264,18 @@ fun AuthScreen(viewModel: MainViewModel) {
               value = email,
               onValueChange = { email = it },
               label = { Text("Work Email") },
-              leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = CyberBluePrimary) },
+              leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = ConsoleBluePrimary) },
               modifier = Modifier
                 .fillMaxWidth()
                 .testTag("input_signup_email"),
-              singleLine = true
+              singleLine = true,
+              colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = ConsoleBluePrimary,
+                unfocusedBorderColor = ConsoleBorder,
+                focusedContainerColor = ConsoleWhite,
+                unfocusedContainerColor = ConsoleWhite
+              ),
+              shape = RoundedCornerShape(6.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -249,11 +284,18 @@ fun AuthScreen(viewModel: MainViewModel) {
               value = organization,
               onValueChange = { organization = it },
               label = { Text("Security Agency / Organization") },
-              leadingIcon = { Icon(Icons.Default.Business, contentDescription = null, tint = CyberBluePrimary) },
+              leadingIcon = { Icon(Icons.Default.Business, contentDescription = null, tint = ConsoleBluePrimary) },
               modifier = Modifier
                 .fillMaxWidth()
                 .testTag("input_signup_org"),
-              singleLine = true
+              singleLine = true,
+              colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = ConsoleBluePrimary,
+                unfocusedBorderColor = ConsoleBorder,
+                focusedContainerColor = ConsoleWhite,
+                unfocusedContainerColor = ConsoleWhite
+              ),
+              shape = RoundedCornerShape(6.dp)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -264,14 +306,14 @@ fun AuthScreen(viewModel: MainViewModel) {
                 .fillMaxWidth()
                 .height(48.dp)
                 .testTag("btn_submit_signup"),
-              colors = ButtonDefaults.buttonColors(containerColor = CyberBluePrimary),
-              shape = RoundedCornerShape(10.dp)
+              colors = ButtonDefaults.buttonColors(containerColor = ConsoleBluePrimary),
+              shape = RoundedCornerShape(6.dp)
             ) {
               Text("Create Auditor Account", fontWeight = FontWeight.Bold)
             }
           }
 
-          Spacer(modifier = Modifier.height(12.dp))
+          Spacer(modifier = Modifier.height(14.dp))
 
           Text(
             text = "Supabase Auth & Row Level Security (RLS) protected profile layer.",

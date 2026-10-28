@@ -9,6 +9,8 @@ import android.os.Build
 import com.example.data.model.DetectedSecretItem
 import com.example.data.model.ExportedComponentItem
 import com.example.data.model.ForensicReport
+import com.example.data.model.HeuristicAnalysisSummary
+import com.example.data.model.HeuristicFinding
 import com.example.data.model.PermissionThreatItem
 import com.example.data.model.RiskLabel
 import com.example.data.model.ScanFinding
@@ -41,7 +43,9 @@ data class FullScanResult(
   val exportedComponents: List<ExportedComponentItem>,
   val detectedSecrets: List<DetectedSecretItem>,
   val extractedUrls: List<String>,
-  val report: ForensicReport
+  val report: ForensicReport,
+  val heuristicFindings: List<HeuristicFinding> = emptyList(),
+  val heuristicSummary: HeuristicAnalysisSummary? = null
 )
 
 class ApkStaticAnalyzer(private val context: Context) {
@@ -361,7 +365,7 @@ class ApkStaticAnalyzer(private val context: Context) {
     }
 
     delay(400)
-    onProgress(AnalysisProgressState(4, "Stage 5/5: Static String & Secret Extraction", 0.90f, "Scanning DEX byte streams for leaked tokens, IPs & credentials..."))
+    onProgress(AnalysisProgressState(4, "Stage 5/5: Static String & Heuristic Pattern Inspection", 0.90f, "Scanning DEX byte streams for leaked tokens, DCL, obfuscation & reflection..."))
 
     val detectedSecrets = mutableListOf<DetectedSecretItem>()
     val extractedUrls = mutableListOf<String>()
@@ -370,6 +374,21 @@ class ApkStaticAnalyzer(private val context: Context) {
     try {
       scanApkDexStrings(tempFile, detectedSecrets, extractedUrls, findings, scanId)
     } catch (_: Exception) {}
+
+    // Execute Heuristic Engine for DCL, Obfuscation, and Suspicious Reflection patterns
+    val heuristicEngine = ApkHeuristicEngine()
+    val heuristicResult = try {
+      heuristicEngine.scanApkFile(tempFile, scanId)
+    } catch (_: Exception) {
+      null
+    }
+    val heuristicFindings = heuristicResult?.findings ?: emptyList()
+    val heuristicSummary = heuristicResult?.summary
+
+    // Add Heuristic findings to main finding list so they are persisted to Room DB
+    heuristicFindings.forEach { hFinding ->
+      findings.add(hFinding.toScanFinding(scanId))
+    }
 
     // Clean up temporary file
     tempFile.delete()
@@ -434,8 +453,8 @@ class ApkStaticAnalyzer(private val context: Context) {
       toolVersion = "PS-02 Static Forensic Analyzer v2.4.0",
       riskScore = finalScore,
       riskLabel = riskLabel,
-      executiveSummary = "Static security evaluation of '$appName' resulted in a risk score of $finalScore/100 ($riskLabel). Identified $criticalCount Critical, $highCount High, and $mediumCount Medium security findings across declared permissions, manifest configurations, and exposed components.",
-      methodology = "Automated static binary inspection of Android Application Package (APK). Examined application package manifest, cryptographic hash integrity, requested permissions vs dangerous vectors, exported IPC components, and byte-level string pattern extraction."
+      executiveSummary = "Static security evaluation of '$appName' resulted in a risk score of $finalScore/100 ($riskLabel). Identified $criticalCount Critical, $highCount High, and $mediumCount Medium security findings across declared permissions, manifest configurations, exposed components, and heuristic patterns (${heuristicFindings.size} heuristic detections).",
+      methodology = "Automated static binary inspection of Android Application Package (APK). Examined application package manifest, cryptographic hash integrity, requested permissions vs dangerous vectors, exported IPC components, heuristic pattern analysis (DCL, obfuscation, reflection), and byte-level string pattern extraction."
     )
 
     onProgress(AnalysisProgressState(5, "Analysis Complete", 1.0f, "Forensic dossier compiled successfully."))
@@ -447,7 +466,9 @@ class ApkStaticAnalyzer(private val context: Context) {
       exportedComponents = exportedItems,
       detectedSecrets = detectedSecrets,
       extractedUrls = extractedUrls,
-      report = report
+      report = report,
+      heuristicFindings = heuristicFindings,
+      heuristicSummary = heuristicSummary
     )
   }
 

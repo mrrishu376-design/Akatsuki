@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,9 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Card
@@ -45,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
@@ -54,13 +51,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.MainViewModel
 import com.example.ui.components.CyberTopAppBar
-import com.example.ui.theme.CyberAccentCyan
-import com.example.ui.theme.CyberBlueDark
-import com.example.ui.theme.CyberBluePrimary
+import com.example.ui.theme.ConsoleBlueBg
+import com.example.ui.theme.ConsoleBluePrimary
+import com.example.ui.theme.ConsoleBorder
+import com.example.ui.theme.ConsoleNavy
+import com.example.ui.theme.ConsoleWhite
 import com.example.ui.theme.RiskSafeGreen
 import com.example.ui.theme.Slate200
 import com.example.ui.theme.Slate600
 import com.example.ui.theme.Slate800
+import com.example.ui.theme.Slate900
 
 @Composable
 fun AnalysisProgressScreen(viewModel: MainViewModel) {
@@ -68,10 +68,10 @@ fun AnalysisProgressScreen(viewModel: MainViewModel) {
 
   val infiniteTransition = rememberInfiniteTransition(label = "pulse")
   val pulseScale by infiniteTransition.animateFloat(
-    initialValue = 0.95f,
-    targetValue = 1.05f,
+    initialValue = 0.96f,
+    targetValue = 1.04f,
     animationSpec = infiniteRepeatable(
-      animation = tween(1000, easing = LinearEasing),
+      animation = tween(1200, easing = LinearEasing),
       repeatMode = RepeatMode.Reverse
     ),
     label = "pulseScale"
@@ -91,57 +91,50 @@ fun AnalysisProgressScreen(viewModel: MainViewModel) {
         title = "Static Analysis Engine",
         subtitle = "Processing byte pipeline"
       )
-    }
+    },
+    containerColor = ConsoleWhite
   ) { innerPadding ->
     Column(
       modifier = Modifier
         .fillMaxSize()
         .padding(innerPadding)
-        .padding(20.dp)
+        .padding(horizontal = 20.dp, vertical = 12.dp)
         .verticalScroll(rememberScrollState()),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       Spacer(modifier = Modifier.height(10.dp))
 
-      // PULSING CYBER SHIELD
+      // ENTERPRISE RADAR BADGE
       Box(
         modifier = Modifier
-          .size(100.dp)
+          .size(92.dp)
           .scale(pulseScale)
           .clip(CircleShape)
-          .background(
-            Brush.radialGradient(
-              colors = listOf(CyberAccentCyan.copy(alpha = 0.3f), CyberBluePrimary.copy(alpha = 0.1f))
-            )
-          ),
+          .background(ConsoleBlueBg),
         contentAlignment = Alignment.Center
       ) {
         Box(
           modifier = Modifier
-            .size(72.dp)
+            .size(64.dp)
             .clip(CircleShape)
-            .background(
-              Brush.linearGradient(
-                colors = listOf(CyberBluePrimary, CyberBlueDark)
-              )
-            ),
+            .background(ConsoleNavy),
           contentAlignment = Alignment.Center
         ) {
           Icon(
             imageVector = Icons.Default.Shield,
             contentDescription = "Scanning",
-            tint = Color.White,
-            modifier = Modifier.size(36.dp)
+            tint = ConsoleWhite,
+            modifier = Modifier.size(32.dp)
           )
         }
       }
 
-      Spacer(modifier = Modifier.height(20.dp))
+      Spacer(modifier = Modifier.height(18.dp))
 
       Text(
         text = progress.stepName.ifEmpty { "Executing Static Forensic Audit" },
         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-        color = MaterialTheme.colorScheme.onBackground
+        color = Slate900
       )
 
       Spacer(modifier = Modifier.height(4.dp))
@@ -163,7 +156,7 @@ fun AnalysisProgressScreen(viewModel: MainViewModel) {
         Text(
           text = "ANALYSIS PROGRESS",
           style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-          color = CyberBluePrimary
+          color = ConsoleBluePrimary
         )
         Text(
           text = "${(progress.progressPercent * 100).toInt()}%",
@@ -171,7 +164,7 @@ fun AnalysisProgressScreen(viewModel: MainViewModel) {
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace
           ),
-          color = CyberBluePrimary
+          color = ConsoleBluePrimary
         )
       }
 
@@ -184,24 +177,26 @@ fun AnalysisProgressScreen(viewModel: MainViewModel) {
           .height(8.dp)
           .clip(RoundedCornerShape(4.dp))
           .testTag("analysis_progress_bar"),
-        color = CyberBluePrimary,
+        color = ConsoleBluePrimary,
         trackColor = Color(0xFFE2E8F0)
       )
 
-      Spacer(modifier = Modifier.height(24.dp))
+      Spacer(modifier = Modifier.height(20.dp))
 
       // STAGE STEPPER CARDS
       Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(14.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        modifier = Modifier
+          .fillMaxWidth()
+          .border(1.dp, ConsoleBorder, RoundedCornerShape(8.dp)),
+        colors = CardDefaults.cardColors(containerColor = ConsoleWhite),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
       ) {
         Column(modifier = Modifier.padding(16.dp)) {
           Text(
             text = "Forensic Inspection Pipeline",
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
+            color = Slate900
           )
 
           Spacer(modifier = Modifier.height(12.dp))
@@ -213,35 +208,36 @@ fun AnalysisProgressScreen(viewModel: MainViewModel) {
             Row(
               modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
+                .padding(vertical = 6.dp),
               verticalAlignment = Alignment.CenterVertically
             ) {
               Box(
                 modifier = Modifier
-                  .size(28.dp)
+                  .size(26.dp)
                   .clip(CircleShape)
                   .background(
                     when {
                       isCompleted -> RiskSafeGreen
-                      isCurrent -> CyberBluePrimary
+                      isCurrent -> ConsoleBluePrimary
                       else -> Color(0xFFE2E8F0)
                     }
                   ),
                 contentAlignment = Alignment.Center
               ) {
                 if (isCompleted) {
-                  Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                  Icon(Icons.Default.Check, contentDescription = null, tint = ConsoleWhite, modifier = Modifier.size(15.dp))
                 } else if (isCurrent) {
                   CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    color = Color.White,
+                    modifier = Modifier.size(14.dp),
+                    color = ConsoleWhite,
                     strokeWidth = 2.dp
                   )
                 } else {
                   Text(
                     text = "${index + 1}",
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = Slate600
+                    color = Slate600,
+                    fontSize = 11.sp
                   )
                 }
               }
@@ -253,20 +249,23 @@ fun AnalysisProgressScreen(viewModel: MainViewModel) {
                 style = MaterialTheme.typography.bodySmall.copy(
                   fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal
                 ),
-                color = if (isCurrent) CyberBluePrimary else MaterialTheme.colorScheme.onSurface
+                color = if (isCurrent) ConsoleBluePrimary else Slate800
               )
             }
           }
         }
       }
 
-      Spacer(modifier = Modifier.height(20.dp))
+      Spacer(modifier = Modifier.height(16.dp))
 
-      // TERMINAL LOG CARD
+      // TERMINAL LOG CARD (NAVY CONSOLE BOX)
       Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Slate800),
-        shape = RoundedCornerShape(10.dp)
+        modifier = Modifier
+          .fillMaxWidth()
+          .border(1.dp, Color(0xFF1E3A5F), RoundedCornerShape(8.dp)),
+        colors = CardDefaults.cardColors(containerColor = ConsoleNavy),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
       ) {
         Column(modifier = Modifier.padding(14.dp)) {
           Row(verticalAlignment = Alignment.CenterVertically) {
@@ -284,10 +283,10 @@ fun AnalysisProgressScreen(viewModel: MainViewModel) {
           }
           Spacer(modifier = Modifier.height(8.dp))
           Text(
-            text = "[+] Verifying ZIP central directory structure\n" +
-                "[+] Ingesting binary XML string pool\n" +
-                "[+] Mapping capabilities to CWE definitions\n" +
-                "[+] Evaluating high-entropy string tokens\n" +
+            text = "[+] Ingesting APK central directory & SHA-256 computation\n" +
+                "[+] Decoding AndroidManifest.xml string chunk pool\n" +
+                "[+] Evaluating permission intent vectors & MITRE ATT&CK matrix\n" +
+                "[+] Scanning bytecode for hardcoded keys & exfiltration endpoints\n" +
                 "[~] Status: ${progress.details.ifEmpty { "Executing rules engine..." }}",
             style = MaterialTheme.typography.bodySmall.copy(
               fontFamily = FontFamily.Monospace,
@@ -298,6 +297,8 @@ fun AnalysisProgressScreen(viewModel: MainViewModel) {
           )
         }
       }
+
+      Spacer(modifier = Modifier.height(20.dp))
     }
   }
 }
