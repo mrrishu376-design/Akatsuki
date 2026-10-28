@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PS-02 Android Application Security & Forensic Analysis Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-900: #0A192F;
+      --navy-800: #102A43;
+      --navy-700: #1B3A5A;
+      --blue-primary: #1E6091;
+      --blue-accent: #0077B6;
+      --blue-light: #E0F2FE;
+      --blue-subtle: #F0F9FF;
+      --border-color: #E2E8F0;
+      --bg-white: #FFFFFF;
+      --bg-canvas: #F8FAFC;
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --crit-red: #DC2626;
+      --crit-bg: #FEF2F2;
+      --high-orange: #EA580C;
+      --high-bg: #FFF7ED;
+      --med-amber: #D97706;
+      --med-bg: #FEFCE8;
+      --safe-green: #16A34A;
+      --safe-bg: #F0FDF4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    code, pre, .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* TOP NAVBAR */
+    .top-nav {
+      background-color: var(--navy-900);
+      color: #FFFFFF;
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--blue-accent);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--blue-accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -0.2px;
+    }
+
+    .brand-badge {
+      font-size: 0.7rem;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 0.5rem 1.1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .btn-primary {
+      background-color: var(--blue-accent);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover {
+      background-color: #0284C7;
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #FFFFFF;
+    }
+
+    .btn-outline:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* HERO BANNER */
+    .hero {
+      background: linear-gradient(180deg, var(--navy-900) 0%, var(--navy-800) 100%);
+      color: #FFFFFF;
+      padding: 3.5rem 2rem 4rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .hero-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 1.25rem;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .hero h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      letter-spacing: -0.5px;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #94A3B8;
+      margin-bottom: 2rem;
+      max-width: 750px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-ctas {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .hero-btn-main {
+      background-color: #0284C7;
+      color: #FFFFFF;
+      padding: 0.75rem 1.75rem;
+      font-size: 1rem;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+    }
+
+    .hero-btn-main:hover {
+      background-color: #0369A1;
+      transform: translateY(-1px);
+    }
+
+    /* STATUS STRIP */
+    .status-strip {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--safe-green);
+      display: inline-block;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 1100px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--navy-900);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    /* GRID CARDS */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: var(--blue-subtle);
+      color: var(--blue-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--navy-900);
+    }
+
+    .card-body {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* ARCHITECTURE CALLOUT */
+    .notice-card {
+      background: #FFFFFF;
+      border-left: 4px solid var(--blue-accent);
+      border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .notice-title {
+      font-weight: 700;
+      color: var(--navy-900);
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .badge-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .badge-crit { background: var(--crit-bg); color: var(--crit-red); border: 1px solid rgba(220, 38, 38, 0.2); }
+    .badge-high { background: var(--high-bg); color: var(--high-orange); border: 1px solid rgba(234, 88, 12, 0.2); }
+    .badge-med { background: var(--med-bg); color: var(--med-amber); border: 1px solid rgba(217, 119, 6, 0.2); }
+    .badge-safe { background: var(--safe-bg); color: var(--safe-green); border: 1px solid rgba(22, 163, 74, 0.2); }
+
+    /* TABLE */
+    .table-container {
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 2.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+    }
+
+    th {
+      background: var(--navy-900);
+      color: #FFFFFF;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background-color: var(--blue-subtle);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--navy-900);
+      color: #94A3B8;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      font-size: 0.875rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    footer a {
+      color: #38BDF8;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="top-nav">
+    <div class="brand">
+      <div class="brand-icon">PS</div>
+      <div>
+        <span class="brand-title">PS-02 Android Forensic Security Platform</span>
+        <span class="brand-badge">Enterprise Console</span>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <a href="#downloads" class="btn btn-primary">Download Android APK</a>
+      <a href="#features" class="btn btn-outline">Platform Specs</a>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <div class="hero-container">
+      <span class="hero-tag">SecOps Automated Analysis Engine</span>
+      <h1>Enterprise Android Application Security & Forensic Analysis</h1>
+      <p>
+        Native on-device Dalvik bytecode inspection, AndroidManifest auditing, MITRE ATT&CK & CWE vulnerability mapping,
+        heuristic dynamic code loading (DCL) detection, and automated Supabase cloud evidence synchronization.
+      </p>
+      <div class="hero-ctas">
+        <a href="#downloads" class="btn hero-btn-main">Get APK for Android / Emulator</a>
+        <a href="#architecture" class="btn btn-outline">System Architecture & APIs</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATUS STRIP -->
+  <div class="status-strip">
+    <div class="status-item">
+      <span class="status-dot"></span>
+      Static Analysis Engine: v2.4.0 Active
+    </div>
+    <div class="status-item">
+      <span class="status-dot"></span>
+      Heuristic Scanner: DCL, Obfuscation & Reflection
+    </div>
+    <div class="status-item">
+      <span class="status-dot"></span>
+      Supabase Cloud Storage: Connected
+    </div>
+    <div class="status-item">
+      <span class="status-dot"></span>
+      Local Persistence: Room SQLite DB
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="container">
+
+    <!-- DEPLOYMENT NOTE CALLOUT -->
+    <div class="notice-card" id="architecture">
+      <div class="notice-title">💡 Why did you see a 404 on Vercel earlier?</div>
+      <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6;">
+        This project is a <strong>Native Android Application (Kotlin + Jetpack Compose)</strong> built with Gradle.
+        Vercel is an engine specifically designed for <em>web apps</em> (Next.js/React/HTML). When Vercel pulled the Android codebase from GitHub without a web entry point, it returned a <code>404 NOT_FOUND</code> because there were no HTML/JS files to render.
+        <br><br>
+        This portal now serves as your official <strong>Vercel Web Console & Download Gateway</strong>. It documents the platform's forensics architecture, allows auditors to download compiled APK builds, and interfaces with your <strong>Supabase</strong> database & storage buckets.
+      </p>
+    </div>
+
+    <!-- CORE CAPABILITIES -->
+    <h2 class="section-title" id="features">Forensic Analysis Capabilities</h2>
+    <p class="section-desc">Key automated capabilities executed during every static APK evaluation:</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">01</div>
+          <div class="card-title">Manifest & Permissions Audit</div>
+        </div>
+        <div class="card-body">
+          Extracts and scores dangerous Android permissions (SMS interception, background location, telephony harvesting) against the Android least-privilege baseline with granular impact scoring.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">02</div>
+          <div class="card-title">Heuristic Malicious Pattern Engine</div>
+        </div>
+        <div class="card-body">
+          Scans Dalvik executable (DEX) bytecode for Dynamic Code Loading (<code>DexClassLoader</code>, <code>InMemoryDexClassLoader</code>), commercial packers (Qihoo 360, Bangcle, Legu), and hidden reflection calls.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">03</div>
+          <div class="card-title">Exported IPC Component Scanner</div>
+        </div>
+        <div class="card-body">
+          Identifies unauthenticated Activities, Services, Broadcast Receivers, and Content Providers exposed to third-party apps without permission protection, mapped to CWE-926.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">04</div>
+          <div class="card-title">Supabase Cloud Evidence Storage</div>
+        </div>
+        <div class="card-body">
+          Streams cryptographic evidence dossiers (JSON artifacts, SHA-256 hashes, vulnerability findings) and formal PDF reports directly into Supabase Storage buckets for multi-analyst forensics.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">05</div>
+          <div class="card-title">Room Local Forensic Database</div>
+        </div>
+        <div class="card-body">
+          Persistent offline-first relational storage powered by SQLite & Room (<code>AppDatabase</code>) storing scan history, findings, compliance rules, and user profiles without data loss.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">06</div>
+          <div class="card-title">PDF Forensic Dossier Generation</div>
+        </div>
+        <div class="card-body">
+          Compiles structured, court-admissible forensic PDF reports complete with executive summaries, risk scores (0–100), analyst sign-offs, and remediation instructions.
+        </div>
+      </div>
+    </div>
+
+    <!-- HEURISTIC THREAT MATRIX -->
+    <h2 class="section-title">Heuristic Threat Detection Matrix</h2>
+    <p class="section-desc">Sample rule mapping evaluated across inspected Dalvik DEX bytecode:</p>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Rule ID</th>
+            <th>Category</th>
+            <th>Severity</th>
+            <th>MITRE ATT&CK</th>
+            <th>Pattern / Signature Detected</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">HEUR_DCL_DEX_01</td>
+            <td>Dynamic Code Loading</td>
+            <td><span class="badge-pill badge-crit">CRITICAL</span></td>
+            <td class="mono">T1407</td>
+            <td><code>dalvik.system.DexClassLoader</code> invoked on writable paths</td>
+          </tr>
+          <tr>
+            <td class="mono">HEUR_DCL_INMEM_02</td>
+            <td>Dynamic Code Loading</td>
+            <td><span class="badge-pill badge-crit">CRITICAL</span></td>
+            <td class="mono">T1407</td>
+            <td><code>InMemoryDexClassLoader</code> executing in-memory payloads</td>
+          </tr>
+          <tr>
+            <td class="mono">HEUR_PACKER_COMM_01</td>
+            <td>Obfuscation & Packers</td>
+            <td><span class="badge-pill badge-high">HIGH</span></td>
+            <td class="mono">T1406</td>
+            <td>Commercial Chinese Packer detected (Qihoo 360 / Bangcle / Legu)</td>
+          </tr>
+          <tr>
+            <td class="mono">HEUR_REFL_SHELL_01</td>
+            <td>Suspicious Reflection</td>
+            <td><span class="badge-pill badge-crit">CRITICAL</span></td>
+            <td class="mono">T1059</td>
+            <td><code>Runtime.exec()</code> invoking root shell (<code>/system/bin/sh</code>, <code>su</code>)</td>
+          </tr>
+          <tr>
+            <td class="mono">HEUR_REFL_EMU_02</td>
+            <td>Anti-Analysis</td>
+            <td><span class="badge-pill badge-med">MEDIUM</span></td>
+            <td class="mono">T1497</td>
+            <td>Reflective query of <code>android.os.SystemProperties</code> (Sandbox Evasion)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DOWNLOAD / DEPLOYMENT SECTION -->
+    <h2 class="section-title" id="downloads">Deployment & Downloads</h2>
+    <p class="section-desc">Deploy the native APK or connect your Supabase backend:</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📱</div>
+          <div class="card-title">Native Android APK Release</div>
+        </div>
+        <div class="card-body">
+          <p style="margin-bottom: 1rem;">
+            Install the <strong>PS-02 Sentinel APK Inspector</strong> directly on any Android device or emulator running Android 7.0+ (API 24 to 36).
+          </p>
+          <a href="https://github.com" target="_blank" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Download Latest APK from GitHub Releases
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">GitHub Actions Automated CI/CD</div>
+        </div>
+        <div class="card-body">
+          <p style="margin-bottom: 1rem;">
+            A pre-configured <code>.github/workflows/android-build.yml</code> workflow automatically compiles signed APK artifacts whenever you push changes to GitHub.
+          </p>
+          <span class="badge-pill badge-safe">CI/CD Ready</span>
+          <span class="badge-pill badge-safe">Gradle Build Verified</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>
+      <strong>PS-02 Android Application Security & Forensic Analysis Platform</strong><br>
+      Built natively with Kotlin, Jetpack Compose, Room Database, and Supabase Cloud Storage.<br>
+      Deployed seamlessly via GitHub on Vercel.
+    </p>
+  </footer>
+
+</body>
+</html>
