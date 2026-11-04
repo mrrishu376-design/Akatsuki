@@ -1,0 +1,8 @@
+{
+  "name": "AppIntel Pro - Android Malware Analysis & Digital Forensics",
+  "description": "Advanced Android malware analysis, static & dynamic security inspection, IOC extraction, MITRE ATT&CK mapping, and forensic report generation workstation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
