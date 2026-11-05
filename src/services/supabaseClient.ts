@@ -6,15 +6,19 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ForensicCase, GlobalIocItem } from '../types/forensic';
 
-// Read from Vite environment variables or localStorage override for instant in-browser testing
-const envUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const envAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+// Read exclusively from environment variables (e.g. configured in Vercel or .env)
+// Never store or display credentials in the browser UI or localStorage.
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem('appintel_override_supabase_url');
+    localStorage.removeItem('appintel_override_supabase_key');
+  } catch {
+    // Ignore in SSR / strict sandbox environments
+  }
+}
 
-const localOverrideUrl = typeof window !== 'undefined' ? localStorage.getItem('appintel_override_supabase_url') : null;
-const localOverrideKey = typeof window !== 'undefined' ? localStorage.getItem('appintel_override_supabase_key') : null;
-
-const activeUrl = localOverrideUrl || envUrl;
-const activeKey = localOverrideKey || envAnonKey;
+const activeUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
+const activeKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim();
 
 export const isSupabaseConfigured = (): boolean => {
   return Boolean(
@@ -24,24 +28,6 @@ export const isSupabaseConfigured = (): boolean => {
     activeUrl.includes('.supabase.co') &&
     activeKey.length > 20
   );
-};
-
-export const getSupabaseConfig = () => ({
-  url: activeUrl || '',
-  key: activeKey ? `${activeKey.slice(0, 10)}...${activeKey.slice(-6)}` : '',
-  isConfigured: isSupabaseConfigured(),
-  source: localOverrideUrl ? ('localStorage' as const) : envUrl ? ('environment' as const) : ('none' as const),
-});
-
-export const setSupabaseOverride = (url: string, anonKey: string) => {
-  if (url && anonKey) {
-    localStorage.setItem('appintel_override_supabase_url', url.trim());
-    localStorage.setItem('appintel_override_supabase_key', anonKey.trim());
-  } else {
-    localStorage.removeItem('appintel_override_supabase_url');
-    localStorage.removeItem('appintel_override_supabase_key');
-  }
-  window.location.reload();
 };
 
 let clientInstance: SupabaseClient | null = null;

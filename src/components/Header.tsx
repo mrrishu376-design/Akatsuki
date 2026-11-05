@@ -6,14 +6,12 @@ interface HeaderProps {
   onOpenUpload: () => void;
   onOpenAuth: () => void;
   onOpenPrivacy: () => void;
-  onOpenSupabase: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenUpload,
   onOpenAuth,
   onOpenPrivacy,
-  onOpenSupabase,
 }) => {
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -51,27 +49,26 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Cluster Status, Actions & Profile */}
       <div className="flex items-center space-x-3 sm:space-x-4">
-        {/* Supabase Status Trigger */}
-        <button
-          onClick={onOpenSupabase}
-          title="Supabase PostgreSQL & Auth Status"
-          className="flex items-center space-x-2 bg-slate-800/80 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700/60 text-xs font-mono text-slate-300 transition"
+        {/* Database Status Indicator (Read-only status badge, no clickable modal or credential disclosure) */}
+        <div
+          title={isSupabaseConnected ? 'Connected to Remote Supabase PostgreSQL Cluster' : 'Local Forensics Storage Active'}
+          className="flex items-center space-x-2 bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700/60 text-xs font-mono text-slate-300 select-none"
         >
           <span
             className={`w-2 h-2 rounded-full ${
-              isSupabaseConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
+              isSupabaseConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'
             }`}
           ></span>
           <span className="hidden md:inline">
-            Supabase:{' '}
-            <strong className={isSupabaseConnected ? 'text-emerald-400' : 'text-amber-400'}>
-              {isSupabaseConnected ? 'CONNECTED' : 'LOCAL MODE'}
+            DB:{' '}
+            <strong className={isSupabaseConnected ? 'text-emerald-400' : 'text-slate-400'}>
+              {isSupabaseConnected ? 'POSTGRESQL SYNC' : 'LOCAL ENGINE'}
             </strong>
           </span>
           <span className="md:hidden">
-            <i className="fa-solid fa-database text-emerald-400"></i>
+            <i className={`fa-solid fa-database ${isSupabaseConnected ? 'text-emerald-400' : 'text-slate-400'}`}></i>
           </span>
-        </button>
+        </div>
 
         {/* Sandbox Status */}
         <div className="hidden lg:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60 text-xs font-mono text-slate-300">
@@ -128,16 +125,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="text-slate-200 truncate mt-0.5">{user.email}</div>
                   <div className="text-[10px] text-emerald-400 mt-1">Status: Active Forensic Officer</div>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    onOpenSupabase();
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg flex items-center space-x-2 transition"
-                >
-                  <i className="fa-solid fa-database text-emerald-400 w-4"></i>
-                  <span>Supabase Config</span>
-                </button>
                 <button
                   onClick={() => {
                     setShowUserMenu(false);

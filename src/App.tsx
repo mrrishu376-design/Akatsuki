@@ -5,7 +5,6 @@ import { DashboardView } from './components/DashboardView';
 import { Header } from './components/Header';
 import { PrivacyModal } from './components/PrivacyModal';
 import { Sidebar } from './components/Sidebar';
-import { SupabaseModal } from './components/SupabaseModal';
 import { ThreatIntelView } from './components/ThreatIntelView';
 import { Toast, ToastMessage } from './components/Toast';
 import { UploadModal } from './components/UploadModal';
@@ -42,7 +41,6 @@ function AppContent() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
-  const [isSupabaseOpen, setIsSupabaseOpen] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<ToastMessage | null>(null);
@@ -143,7 +141,6 @@ function AppContent() {
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenPrivacy={() => setIsPrivacyOpen(true)}
-        onOpenSupabase={() => setIsSupabaseOpen(true)}
       />
 
       {/* Main Workspace Container */}
@@ -222,12 +219,6 @@ function AppContent() {
       <PrivacyModal
         isOpen={isPrivacyOpen}
         onClose={() => setIsPrivacyOpen(false)}
-      />
-
-      <SupabaseModal
-        isOpen={isSupabaseOpen}
-        onClose={() => setIsSupabaseOpen(false)}
-        onShowToast={showToast}
       />
 
       {/* Toast Notification */}
